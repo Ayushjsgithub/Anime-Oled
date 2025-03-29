@@ -1,26 +1,21 @@
-/* ============================================================
- *  Anime OLED — script.js
- *  Fetches random anime images from the waifu.pics public API
- *  and handles SFW/NSFW toggling, category selection, and
- *  direct image download with CORS proxy fallback.
- * ============================================================ */
-
-
 /* ─── CONFIG ─────────────────────────────────────────────────
  *  All available categories for SFW and NSFW modes.
- *  Source: https://waifu.pics/docs
  * ─────────────────────────────────────────────────────────── */
 const categories = {
     sfw: ['waifu', 'neko', 'shinobu', 'megumin', 'bully', 'cuddle', 'cry', 'hug', 'awoo', 'kiss', 'lick', 'pat', 'smug', 'bonk', 'yeet', 'blush', 'smile', 'wave', 'highfive', 'handhold', 'nom', 'bite', 'glomp', 'slap', 'kill', 'kick', 'happy', 'wink', 'poke', 'dance', 'cringe'],
     nsfw: ['waifu', 'neko', 'trap', 'blowjob']
 };
 
-
 /* ─── DOM REFS ───────────────────────────────────────────────
- *  Cached element references — avoids repeated querySelector
- *  calls throughout the app lifecycle.
+ *  Cached element references for the dynamic carousel structure.
  * ─────────────────────────────────────────────────────────── */
-const animeImg           = document.getElementById('anime-img');
+const carouselViewport  = document.getElementById('carousel-viewport');
+const carouselTrack     = document.getElementById('carousel-track');
+const thumbnailArea     = document.getElementById('thumbnail-area');
+const thumbnailTrack    = document.getElementById('thumbnail-track');
+const prevBtn           = document.getElementById('prev-btn');
+const nextBtn           = document.getElementById('next-btn');
+
 const dropdownTrigger    = document.getElementById('dropdown-trigger');
 const dropdownPopover    = document.getElementById('dropdown-popover');
 const categoryGrid       = document.getElementById('category-grid');
@@ -33,31 +28,26 @@ const placeholder        = document.getElementById('placeholder');
 const sfwLabel           = document.querySelector('.toggle-label.sfw');
 const nsfwLabel          = document.querySelector('.toggle-label.nsfw');
 
-
 /* ─── STATE ──────────────────────────────────────────────────
- *  Minimal mutable state — keep this small and intentional.
+ *  Maintains the fetched collection and active navigation state.
  * ─────────────────────────────────────────────────────────── */
-let currentImageUrl  = '';   // URL of the currently displayed image
+let imageUrls        = [];      // Array of fetched image URLs
+let currentIndex     = 0;       // Active image index
 let selectedCategory = 'waifu'; // Active category selection
-
 
 /* ─── DROPDOWN ───────────────────────────────────────────────
  *  Builds the category grid based on active content type.
- *  Called on page load and whenever the SFW/NSFW toggle changes.
  * ─────────────────────────────────────────────────────────── */
 function populateCategories() {
     const type = typeToggle.checked ? 'nsfw' : 'sfw';
-    categoryGrid.innerHTML = ''; // Clear previous items
+    categoryGrid.innerHTML = ''; 
 
-    // If the previous category doesn't exist in the new type, reset to first
     if (!categories[type].includes(selectedCategory)) {
         selectedCategory = categories[type][0];
-        console.debug(`[Category] Reset to "${selectedCategory}" (not available in ${type} mode)`);
     }
 
     selectedCategoryText.textContent = selectedCategory.charAt(0).toUpperCase() + selectedCategory.slice(1);
 
-    // Render each category as a clickable grid item
     categories[type].forEach(cat => {
         const item = document.createElement('div');
         item.className = `category-item ${cat === selectedCategory ? 'selected' : ''}`;
@@ -65,14 +55,12 @@ function populateCategories() {
         item.addEventListener('click', () => {
             selectedCategory = cat;
             selectedCategoryText.textContent = item.textContent;
-            console.debug(`[Category] Selected: ${selectedCategory}`);
             closeDropdown();
             updateSelectionUI();
         });
         categoryGrid.appendChild(item);
     });
 
-    // Highlight the active toggle label (SFW or NSFW)
     if (type === 'sfw') {
         sfwLabel.classList.add('active');
         nsfwLabel.classList.remove('active');
@@ -93,62 +81,156 @@ function updateSelectionUI() {
 function toggleDropdown() {
     const isHidden = dropdownPopover.classList.toggle('hidden');
     dropdownTrigger.classList.toggle('active');
-    dropdownTrigger.setAttribute('aria-expanded', !isHidden);
 }
 
 /** Closes and resets the category dropdown to its default state. */
 function closeDropdown() {
     dropdownPopover.classList.add('hidden');
     dropdownTrigger.classList.remove('active');
-    dropdownTrigger.setAttribute('aria-expanded', 'false');
 }
 
+/* ─── CAROUSEL LOGIC ─────────────────────────────────────────
+ *  Handles the rendering and sliding behavior of the carousel.
+ * ─────────────────────────────────────────────────────────── */
+
+/** Injects slides and thumbnails into the DOM based on current state. */
+function renderCarousel() {
+    carouselTrack.innerHTML = '';
+    thumbnailTrack.innerHTML = '';
+
+    // Add Start Spacer to allow centering of first item
+    const startSpacer = document.createElement('div');
+    startSpacer.className = 'thumb-spacer';
+    thumbnailTrack.appendChild(startSpacer);
+
+    imageUrls.forEach((url, index) => {
+        // Create Main Slide
+        const slide = document.createElement('div');
+        slide.className = 'carousel-slide';
+        const img = document.createElement('img');
+        img.src = url;
+        img.alt = `${selectedCategory} image ${index + 1}`;
+        slide.appendChild(img);
+        carouselTrack.appendChild(slide);
+
+        // Create Navigation Thumbnail (Dynamic Strip)
+        const thumbBtn = document.createElement('button');
+        thumbBtn.className = `thumb-btn ${index === 0 ? 'active' : ''}`;
+        thumbBtn.type = 'button';
+        thumbBtn.setAttribute('aria-label', `Open image ${index + 1}`);
+        thumbBtn.innerHTML = `<img src="${url}" alt="Thumbnail ${index + 1}">`;
+        thumbBtn.addEventListener('click', () => setCarouselIndex(index));
+        thumbnailTrack.appendChild(thumbBtn);
+    });
+
+    // Add End Spacer to allow centering of last item
+    const endSpacer = document.createElement('div');
+    endSpacer.className = 'thumb-spacer';
+    thumbnailTrack.appendChild(endSpacer);
+
+    setCarouselIndex(0); 
+}
+
+/** 
+ * Updates the track position and thumbnail states.
+ * Also handles button states and auto-scrolling centering.
+ */
+function setCarouselIndex(index) {
+    if (index < 0 || index >= imageUrls.length) return;
+    
+    currentIndex = index;
+
+    // Slide the main track
+    carouselTrack.style.transform = `translateX(-${index * 100}%)`;
+
+    // Update Thumbnail States (triggers width expansion in CSS)
+    const thumbs = document.querySelectorAll('.thumb-btn');
+    thumbs.forEach((t, i) => {
+        const isActive = i === currentIndex;
+        t.classList.toggle('active', isActive);
+        t.setAttribute('aria-current', isActive ? 'true' : 'false');
+    });
+
+    // Update Nav Arrows
+    prevBtn.disabled = (currentIndex === 0);
+    nextBtn.disabled = (currentIndex === imageUrls.length - 1);
+
+    // Auto-scroll active thumbnail to center of view
+    // Using manual scrollTo avoids jumping the entire page
+    setTimeout(() => {
+        const activeThumb = thumbs[currentIndex];
+        if (activeThumb && thumbnailTrack) {
+            const trackWidth = thumbnailTrack.offsetWidth;
+            const thumbOffset = activeThumb.offsetLeft;
+            const thumbWidth = activeThumb.offsetWidth;
+            
+            // MATH: target = elementCenter - containerCenter
+            // thumbOffset is already relative to the track thanks to position:relative in CSS
+            const targetScroll = thumbOffset - (trackWidth / 2) + (thumbWidth / 2);
+            
+            thumbnailTrack.scrollTo({
+                left: targetScroll,
+                behavior: 'smooth'
+            });
+        }
+    }, 50);
+}
 
 /* ─── API FETCH ──────────────────────────────────────────────
- *  Fetches a random image from waifu.pics for the active
- *  type + category combo and renders it in the image panel.
- *  API format: GET https://api.waifu.pics/{type}/{category}
+ *  Uses the 'many' endpoint to fetch up to 30 images at once.
+ *  POST https://api.waifu.pics/many/{type}/{category}
  * ─────────────────────────────────────────────────────────── */
 async function getAnime() {
     const type = typeToggle.checked ? 'nsfw' : 'sfw';
-    const apiUrl = `https://api.waifu.pics/${type}/${selectedCategory}`;
-    console.debug(`[API] Fetching: ${apiUrl}`);
-
-    // Lock UI while loading
+    const apiUrl = `https://api.waifu.pics/many/${type}/${selectedCategory}`;
+    console.debug(`[API] Fetching collection: ${apiUrl}`);
+    
+    // Lock UI and show loader
     findBtn.disabled = true;
     const originalBtnText = findBtn.textContent;
-    findBtn.textContent = 'Searching...';
+    findBtn.textContent = 'Gathering...';
     loader.classList.remove('hidden');
     placeholder.classList.add('hidden');
-    animeImg.classList.add('hidden');
+    carouselViewport.classList.add('hidden');
+    thumbnailArea.classList.add('hidden');
     downloadBtn.disabled = true;
 
     try {
-        const response = await fetch(apiUrl);
+        const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ exclude: [] })
+        });
         const data = await response.json();
-        console.debug('[API] Response:', data);
 
-        if (data.url) {
-            currentImageUrl = data.url;
-            animeImg.src = data.url;
-            animeImg.alt = `${selectedCategory} - Anime AMOLED`;
+        if (data.files && data.files.length > 0) {
+            imageUrls = data.files;
+            currentIndex = 0;
+            
+            renderCarousel();
 
-            // Only reveal the image once it has fully loaded — prevents layout flash
-            animeImg.onload = () => {
-                loader.classList.add('hidden');
-                animeImg.classList.remove('hidden');
-                downloadBtn.disabled = false;
-                findBtn.disabled = false;
-                findBtn.textContent = originalBtnText;
-                console.debug('[Image] Loaded successfully:', currentImageUrl);
-            };
+            // Reveal thumbnails and UI once the first image is ready
+            const firstImg = carouselTrack.querySelector('img');
+            if (firstImg) {
+                const revealUI = () => {
+                    loader.classList.add('hidden');
+                    carouselViewport.classList.remove('hidden');
+                    thumbnailArea.classList.remove('hidden');
+                    downloadBtn.disabled = false;
+                    findBtn.disabled = false;
+                    findBtn.textContent = originalBtnText;
+                    console.debug('[Carousel] Ready with', imageUrls.length, 'images');
+                };
+
+                if (firstImg.complete) revealUI();
+                else firstImg.onload = revealUI;
+            }
         } else {
-            // API responded but returned no URL — shouldn't happen but handle gracefully
-            throw new Error('API returned no image URL');
+            throw new Error('Empty response from API');
         }
     } catch (error) {
-        console.error('[API] Fetch error:', error);
-        alert('Failed to fetch image. Please try again.');
+        console.error('[API] Error:', error);
+        alert('Failed to fetch images. Please try again.');
         findBtn.disabled = false;
         findBtn.textContent = originalBtnText;
         loader.classList.add('hidden');
@@ -156,99 +238,70 @@ async function getAnime() {
     }
 }
 
-
 /* ─── DOWNLOAD ───────────────────────────────────────────────
- *  Downloads the current image as a .png file.
- *
- *  Strategy (in order):
- *   1. Direct fetch — works if waifu.pics allows CORS on the CDN
- *   2. CORS proxy (corsproxy.io) — auto-fallback, no user prompt
- *   3. Open in new tab — absolute last resort if both fetches fail
- *
- *  Note: corsproxy.io only sees the public image URL.
- *  No sensitive data is ever proxied.
+ *  Downloads the currently active carousel image.
  * ─────────────────────────────────────────────────────────── */
 async function downloadImage() {
-    if (!currentImageUrl || downloadBtn.disabled) return;
+    const url = imageUrls[currentIndex];
+    if (!url || downloadBtn.disabled) return;
 
-    // Lock download button while in progress
+    downloadBtn.disabled = true;
     const originalText = downloadBtn.textContent;
     downloadBtn.textContent = 'Downloading...';
-    downloadBtn.disabled = true;
 
-    const cleanup = () => {
-        downloadBtn.textContent = originalText;
-        downloadBtn.disabled = false;
-    };
-
-    /** Creates a temporary <a> element to trigger a browser file download. */
     const triggerDownload = (blob) => {
-        const url = window.URL.createObjectURL(blob);
+        const blobUrl = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
-        a.style.display = 'none';
-        a.href = url;
+        a.href = blobUrl;
         a.download = `anime_${selectedCategory}_${Date.now()}.png`;
         document.body.appendChild(a);
         a.click();
-        // Revoke the object URL after a short delay to free memory
         setTimeout(() => {
-            window.URL.revokeObjectURL(url);
+            window.URL.revokeObjectURL(blobUrl);
             document.body.removeChild(a);
-            cleanup();
+            downloadBtn.textContent = originalText;
+            downloadBtn.disabled = false;
         }, 100);
     };
 
-    // Attempt list: direct URL first, then CORS proxy
-    const attemptUrls = [
-        { label: 'direct',     url: currentImageUrl },
-        { label: 'cors-proxy', url: `https://corsproxy.io/?${encodeURIComponent(currentImageUrl)}` }
-    ];
-
-    for (const { label, url } of attemptUrls) {
+    try {
+        const resp = await fetch(url, { mode: 'cors' });
+        if (!resp.ok) throw new Error('Direct fetch failed');
+        const blob = await resp.blob();
+        triggerDownload(blob);
+    } catch {
+        const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(url)}`;
         try {
-            console.debug(`[Download] Trying ${label}:`, url);
-            const response = await fetch(url, { mode: 'cors', credentials: 'omit' });
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
-            const blob = await response.blob();
-            console.debug(`[Download] Success via ${label}`);
+            const resp = await fetch(proxyUrl);
+            const blob = await resp.blob();
             triggerDownload(blob);
-            return; // Exit on first success
-        } catch (err) {
-            console.warn(`[Download] Failed via ${label}:`, err.message);
+        } catch {
+            window.open(url, '_blank');
+            downloadBtn.textContent = originalText;
+            downloadBtn.disabled = false;
         }
     }
-
-    // All fetch attempts failed — open in new tab as absolute last resort
-    console.error('[Download] All fetch attempts failed. Opening in new tab.');
-    alert('Download failed. Opening in a new tab — right-click the image to save it.');
-    window.open(currentImageUrl, '_blank');
-    cleanup();
 }
 
-
-/* ─── EVENT LISTENERS ────────────────────────────────────────
- *  Wire up all interactive elements to their handlers.
- * ─────────────────────────────────────────────────────────── */
+/* ─── EVENT LISTENERS ──────────────────────────────────────── */
 typeToggle.addEventListener('change', populateCategories);
 findBtn.addEventListener('click', getAnime);
 downloadBtn.addEventListener('click', downloadImage);
 
-// Toggle dropdown on button click (stop propagation to prevent immediate close)
+prevBtn.addEventListener('click', () => setCarouselIndex(currentIndex - 1));
+nextBtn.addEventListener('click', () => setCarouselIndex(currentIndex + 1));
+
 dropdownTrigger.addEventListener('click', (e) => {
     e.stopPropagation();
     toggleDropdown();
 });
 
-// Close dropdown when clicking anywhere outside it
 document.addEventListener('click', (e) => {
     if (!dropdownPopover.contains(e.target) && !dropdownTrigger.contains(e.target)) {
         closeDropdown();
     }
 });
 
-
-/* ─── INIT ───────────────────────────────────────────────────
- *  Run once on page load to populate categories with defaults.
- * ─────────────────────────────────────────────────────────── */
+/* ─── INIT ─────────────────────────────────────────────────── */
 console.debug('[Init] Anime OLED loaded. Populating categories...');
 populateCategories();
