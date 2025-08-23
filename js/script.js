@@ -40,6 +40,7 @@ const nextBtn           = document.getElementById('next-btn');
 const drawer            = document.getElementById('drawer');
 const drawerBackdrop    = document.getElementById('drawer-backdrop');
 const drawerToggle      = document.getElementById('drawer-toggle');
+const drawerClose       = document.getElementById('drawer-close');
 
 const dropdownTrigger    = document.getElementById('dropdown-trigger');
 const dropdownPopover    = document.getElementById('dropdown-popover');
@@ -305,8 +306,6 @@ async function downloadImage() {
     if (!url || downloadBtn.disabled) return;
 
     downloadBtn.disabled = true;
-    const originalText = downloadBtn.textContent;
-    downloadBtn.textContent = 'Downloading...';
 
     const triggerDownload = (blob) => {
         // Gating: Only download if it's actually an image
@@ -331,7 +330,6 @@ async function downloadImage() {
         setTimeout(() => {
             window.URL.revokeObjectURL(blobUrl);
             document.body.removeChild(a);
-            downloadBtn.textContent = originalText;
             downloadBtn.disabled = false;
         }, 100);
     };
@@ -352,7 +350,6 @@ async function downloadImage() {
         } catch (error) {
             console.error('[Download] All methods failed. Falling back to new tab:', error);
             window.open(url, '_blank');
-            downloadBtn.textContent = originalText;
             downloadBtn.disabled = false;
         }
     }
@@ -367,6 +364,12 @@ if (drawerToggle) {
 }
 if (drawerBackdrop) {
     drawerBackdrop.addEventListener('click', () => {
+        drawer.classList.remove('open');
+        drawerBackdrop.classList.remove('open');
+    });
+}
+if (drawerClose) {
+    drawerClose.addEventListener('click', () => {
         drawer.classList.remove('open');
         drawerBackdrop.classList.remove('open');
     });

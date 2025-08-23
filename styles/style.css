@@ -29,6 +29,7 @@
     padding: 0;
     box-sizing: border-box;
     font-family: 'Outfit', sans-serif;
+    -webkit-tap-highlight-color: transparent;
 }
 
 /* ─── BODY & LAYOUT ─────────────────────────────────────────
@@ -749,16 +750,84 @@ footer a:hover {
     color: var(--accent-color);
 }
 
-/* ─── RESPONSIVE / MOBILE ───────────────────────────────────
+/* ─── RESPONSIVE / MOBILE & TABLET ────────────────────────────
+ *  Increase container width on tablets to prevent overflow.
  *  Collapse the controls grid to a single column on mobile screens.
- *  Breakpoint: 600px (most mobile viewports).
  * ─────────────────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+    header, main {
+        width: 85vw;
+    }
+    .controls {
+        gap: 1rem;
+        padding: 1.5rem;
+    }
+}
 @media (max-width: 600px) {
     .controls {
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr auto;
+        grid-template-rows: auto auto;
+        padding: 1rem;
+        gap: 0.8rem;
+    }
+    
+    /* Search Mode Toggle */
+    .controls > .control-group:first-child {
+        grid-column: 1;
+        grid-row: 2;
+    }
+
+    /* Category / Search Input */
+    #group-category, #group-search {
+        grid-column: 1 / -1;
+        grid-row: 1;
+    }
+    
+    .button-group {
+        grid-column: 2;
+        grid-row: 2;
+        justify-content: flex-end;
+        gap: 0.4rem;
+    }
+
+    .icon-btn {
+        width: 40px;
+        height: 40px;
+    }
+    .icon-btn svg {
+        width: 18px;
+        height: 18px;
+    }
+
+    .toggle-container {
+        padding: 0 0.5rem;
+        gap: 0.4rem;
+        height: 40px;
+    }
+    
+    .toggle-label {
+        font-size: 0.65rem;
+    }
+
+    .switch {
+        width: 40px;
+        height: 20px;
+    }
+    
+    .slider:before {
+        height: 14px;
+        width: 14px;
+    }
+    
+    input:checked+.slider:before {
+        transform: translateX(20px);
     }
     
     header, main {
         width: 95vw;
+    }
+
+    .drawer-close-btn {
+        display: flex !important;
     }
 }
