@@ -60,6 +60,47 @@ body.amoled-theme {
  *  Title bar with accent glow on the OLED text highlight.
  * ─────────────────────────────────────────────────────────── */
 
+/* ─── EXTERNAL BANNER OVERRIDES ─────────────────────────────
+ *  Overrides for any injected third-party banner styles.
+ *  Safe to remove if no external banners are used.
+ * ─────────────────────────────────────────────────────────── */
+.kao-banner {
+    background: rgba(0, 0, 0, 0.85) !important;
+    backdrop-filter: blur(12px) !important;
+    border: none;
+    color: #ffffff !important;
+    font-family: 'JetBrains Mono', monospace !important;
+    text-shadow: none !important;
+    padding: 0.5rem 2rem !important;
+}
+
+.kao-banner a {
+
+    text-decoration: none !important;
+    border-bottom: none !important;
+}
+
+/* External Banner Styling */
+.kao-banner {
+    background: transparent !important;
+    backdrop-filter: none !important;
+    border: none !important;
+    color: var(--text-primary) !important;
+    font-family: var(--font-mono) !important;
+    text-shadow: none !important;
+    padding: 0.6rem 0 !important;
+    margin-bottom: 1.5rem;
+    z-index: 2000;
+}
+
+.kao-banner a {
+    color: #00f2ff !important;
+    font-weight: bold;
+    transition: color 0.3s ease;
+    text-decoration: none !important;
+    border: none !important;
+}
+
 
 header {
     width: 50vw;
