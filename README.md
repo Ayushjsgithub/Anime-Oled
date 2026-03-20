@@ -18,7 +18,7 @@ Anime That Glows in the Dark. A premium, AMOLED-friendly anime wallpaper discove
 - **HTML5:** Semantic structure.
 - **Vanilla CSS:** Custom properties (variables), Flexbox, Grid, and Glassmorphism effects.
 - **JavaScript (ES6+):** Pure JS for DOM manipulation, API fetching, and asynchronous operations.
-- **API:** Powered by [waifu.pics](https://waifu.pics).
+- **API:** Powered by [waifu.pics](https://waifu.pics)
 
 ## 🚀 Getting Started
 
@@ -38,7 +38,7 @@ Anime That Glows in the Dark. A premium, AMOLED-friendly anime wallpaper discove
 
 ## 📜 Credits
 
-- Built with ❤️ by [Ayush](https://github.com/Ayushjsgithub)
+- Built with ❤️
 - Images provided by the [waifu.pics API](https://waifu.pics/docs)
 
 ---
