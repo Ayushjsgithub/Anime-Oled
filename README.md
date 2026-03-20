@@ -2,6 +2,8 @@
 
 Anime That Glows in the Dark. A premium, AMOLED-friendly anime wallpaper discovery and downloader tool.
 
+![Anime OLED Screenshot](images/preview.png)
+
 ## 🌟 Features
 
 - **AMOLED Optimized:** Designed with deep blacks (`#000000`) to save battery and look stunning on OLED/AMOLED screens.
