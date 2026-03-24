@@ -1,3 +1,14 @@
+/* ============================================================
+ *  Anime OLED — style.css
+ *  AMOLED-first design using pure CSS variables, Glassmorphism,
+ *  and accent glow effects. Pure black background for OLED savings.
+ * ============================================================ */
+
+
+/* ─── CSS VARIABLES (DESIGN TOKENS) ─────────────────────────
+ *  Central source of truth for all colors, shadows, and effects.
+ *  Change these to retheme the entire app.
+ * ─────────────────────────────────────────────────────────── */
 :root {
     --bg-color: #000000;
     --card-bg: rgba(20, 20, 20, 0.8);
@@ -10,6 +21,9 @@
     --success: #00ff88;
 }
 
+/* ─── RESET & BASE ───────────────────────────────────────────
+ *  Minimal global reset; font applied globally via Outfit (Google Fonts).
+ * ─────────────────────────────────────────────────────────── */
 * {
     margin: 0;
     padding: 0;
@@ -17,6 +31,10 @@
     font-family: 'Outfit', sans-serif;
 }
 
+/* ─── BODY & LAYOUT ─────────────────────────────────────────
+ *  Pure black (#000) background is key for true OLED power saving.
+ *  Flex centering keeps content vertically + horizontally centered.
+ * ─────────────────────────────────────────────────────────── */
 body.amoled-theme {
     background-color: var(--bg-color);
     color: var(--text-primary);
@@ -35,6 +53,52 @@ body.amoled-theme {
     flex-direction: column;
     gap: 2rem;
 }
+
+/* ─── HEADER ────────────────────────────────────────────────
+ *  Title bar with accent glow on the OLED text highlight.
+ * ─────────────────────────────────────────────────────────── */
+
+/* ─── EXTERNAL BANNER OVERRIDES ─────────────────────────────
+ *  Overrides for any injected third-party banner styles.
+ *  Safe to remove if no external banners are used.
+ * ─────────────────────────────────────────────────────────── */
+.kao-banner {
+    background: rgba(0, 0, 0, 0.85) !important;
+    backdrop-filter: blur(12px) !important;
+    border: none;
+    color: #ffffff !important;
+    font-family: 'JetBrains Mono', monospace !important;
+    text-shadow: none !important;
+    padding: 0.5rem 2rem !important;
+}
+
+.kao-banner a {
+
+    text-decoration: none !important;
+    border-bottom: none !important;
+}
+
+/* External Banner Styling */
+.kao-banner {
+    background: transparent !important;
+    backdrop-filter: none !important;
+    border: none !important;
+    color: var(--text-primary) !important;
+    font-family: var(--font-mono) !important;
+    text-shadow: none !important;
+    padding: 0.6rem 0 !important;
+    margin-bottom: 1.5rem;
+    z-index: 2000;
+}
+
+.kao-banner a {
+    color: #00f2ff !important;
+    font-weight: bold;
+    transition: color 0.3s ease;
+    text-decoration: none !important;
+    border: none !important;
+}
+
 
 header {
     text-align: center;
@@ -60,6 +124,10 @@ header p {
     font-size: 0.8rem;
 }
 
+/* ─── GLASS CARD (SHARED UTILITY) ─────────────────────────────
+ *  Reusable glassmorphism base class applied to cards and panels.
+ *  Uses backdrop-filter for frosted glass effect.
+ * ─────────────────────────────────────────────────────────── */
 .glass {
     background: var(--card-bg);
     backdrop-filter: blur(10px);
@@ -69,6 +137,10 @@ header p {
     box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
 }
 
+/* ─── CONTROLS PANEL ────────────────────────────────────────
+ *  Top card containing the content type toggle, category dropdown,
+ *  and action buttons. z-index is elevated to float above image card.
+ * ─────────────────────────────────────────────────────────── */
 .controls {
     padding: 2rem;
     display: grid;
@@ -91,7 +163,10 @@ header p {
     font-weight: 400;
 }
 
-/* Custom Dropdown Styling */
+/* ─── CUSTOM DROPDOWN ───────────────────────────────────────
+ *  Replaces the native <select> for a fully styled category picker.
+ *  The popover appears below the trigger with a slideUp animation.
+ * ─────────────────────────────────────────────────────────── */
 .custom-dropdown {
     position: relative;
     width: 100%;
@@ -204,6 +279,10 @@ header p {
     background: var(--text-secondary);
 }
 
+/* ─── TOGGLE SWITCH (SFW / NSFW) ─────────────────────────────
+ *  Custom checkbox-based toggle. Hidden input + visible slider.
+ *  NSFW state turns the toggle red (#ff0055) as a visual warning.
+ * ─────────────────────────────────────────────────────────── */
 /* Toggle Switch Styling */
 .toggle-container {
     display: flex;
@@ -281,6 +360,10 @@ input:checked+.slider:before {
     color: #ff0055;
 }
 
+/* ─── BUTTONS ────────────────────────────────────────────────
+ *  Primary (Find) = accent cyan. Secondary (Download) = ghost glass.
+ *  Disabled state reduces opacity; pointer-events blocked via cursor.
+ * ─────────────────────────────────────────────────────────── */
 /* Button Styling */
 .button-group {
     display: flex;
@@ -322,6 +405,11 @@ button {
     cursor: not-allowed;
 }
 
+/* ─── IMAGE DISPLAY PANEL ───────────────────────────────────
+ *  Floating card that sits below the controls with a glowing
+ *  cyan border and multi-layered box-shadow for depth.
+ *  Lifts on hover for a premium interactive feel.
+ * ─────────────────────────────────────────────────────────── */
 /* Image Display Styling */
 .image-display {
     min-height: 400px;
@@ -329,9 +417,25 @@ button {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    padding: 1rem;
+    padding: 1.5rem;
     position: relative;
     z-index: 1;
+    margin-top: 1rem;
+    border: 1px solid rgba(0, 242, 255, 0.2);
+    box-shadow:
+        0 8px 32px rgba(0, 0, 0, 0.9),
+        0 0 40px rgba(0, 242, 255, 0.08),
+        0 0 1px rgba(0, 242, 255, 0.3) inset;
+    transform: translateY(0);
+    transition: box-shadow 0.4s ease, transform 0.4s ease;
+}
+
+.image-display:hover {
+    box-shadow:
+        0 16px 48px rgba(0, 0, 0, 0.95),
+        0 0 60px rgba(0, 242, 255, 0.15),
+        0 0 1px rgba(0, 242, 255, 0.5) inset;
+    transform: translateY(-4px);
 }
 
 #anime-img {
@@ -358,6 +462,10 @@ button {
     display: none !important;
 }
 
+/* ─── SPINNER LOADER ────────────────────────────────────────
+ *  Shown while an API image is being fetched.
+ *  Uses the accent color on the bottom border for a gradient spin effect.
+ * ─────────────────────────────────────────────────────────── */
 /* Loader */
 .loader {
     width: 48px;
@@ -380,6 +488,9 @@ button {
     }
 }
 
+/* ─── FOOTER ────────────────────────────────────────────────
+ *  Minimal API attribution footer. Link highlights with accent color.
+ * ─────────────────────────────────────────────────────────── */
 footer {
     text-align: center;
     color: var(--text-secondary);
@@ -398,6 +509,10 @@ footer a:hover {
     color: var(--accent-color);
 }
 
+/* ─── RESPONSIVE / MOBILE ───────────────────────────────────
+ *  Collapse the controls grid to a single column on mobile screens.
+ *  Breakpoint: 600px (most mobile viewports).
+ * ─────────────────────────────────────────────────────────── */
 @media (max-width: 600px) {
     .controls {
         grid-template-columns: 1fr;
