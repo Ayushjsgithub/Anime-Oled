@@ -4,7 +4,7 @@ Anime That Glows in the Dark. A premium, AMOLED-friendly anime wallpaper discove
 
 ![Anime OLED Screenshot](images/preview.png)
 
-[**Live Demo**](https://ayushjsgithub.github.io/Anime-Oled/)
+[**Live Demo**](https://anime-oled.vercel.app/)
 
 ## 🌟 Features
 
