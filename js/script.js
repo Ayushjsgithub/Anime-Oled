@@ -250,12 +250,25 @@ async function downloadImage() {
     downloadBtn.textContent = 'Downloading...';
 
     const triggerDownload = (blob) => {
+        // Gating: Only download if it's actually an image
+        if (!blob.type.startsWith('image/')) {
+            throw new Error('Not an image response');
+        }
+
+        // Detect extension from the URL (e.g., .jpg, .png, .gif) for maximum accuracy
+        let ext = url.split('.').pop().toLowerCase();
+        if (!['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) {
+            ext = blob.type.split('/')[1] || 'png';
+        }
+        if (ext === 'jpeg') ext = 'jpg';
+
         const blobUrl = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = blobUrl;
-        a.download = `anime_${selectedCategory}_${Date.now()}.png`;
+        a.download = `anime_${selectedCategory}_${Date.now()}.${ext}`;
         document.body.appendChild(a);
         a.click();
+        
         setTimeout(() => {
             window.URL.revokeObjectURL(blobUrl);
             document.body.removeChild(a);
@@ -269,13 +282,16 @@ async function downloadImage() {
         if (!resp.ok) throw new Error('Direct fetch failed');
         const blob = await resp.blob();
         triggerDownload(blob);
-    } catch {
+    } catch (err) {
+        console.warn(`[Download] Direct fetch failed: ${err.message}. Retrying via proxy...`);
         const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(url)}`;
         try {
             const resp = await fetch(proxyUrl);
+            if (!resp.ok) throw new Error('Proxy fetch failed');
             const blob = await resp.blob();
             triggerDownload(blob);
-        } catch {
+        } catch (error) {
+            console.error('[Download] All methods failed. Falling back to new tab:', error);
             window.open(url, '_blank');
             downloadBtn.textContent = originalText;
             downloadBtn.disabled = false;
