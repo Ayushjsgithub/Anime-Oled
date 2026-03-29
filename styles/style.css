@@ -405,45 +405,198 @@ button {
     cursor: not-allowed;
 }
 
-/* ─── IMAGE DISPLAY PANEL ───────────────────────────────────
- *  Floating card that sits below the controls with a glowing
- *  cyan border and multi-layered box-shadow for depth.
- *  Lifts on hover for a premium interactive feel.
+/* ─── IMAGE DISPLAY & CAROUSEL ──────────────────────────────
+ *  Unified system that preserves the OLED glass card aesthetic
+ *  while implementing the sliding track and thumbnail expansion.
  * ─────────────────────────────────────────────────────────── */
-/* Image Display Styling */
+
 .image-display {
-    min-height: 400px;
+    min-height: 400px; /* Reduced base height */
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    padding: 1.5rem;
+    padding: 1rem; /* Compact padding */
     position: relative;
     z-index: 1;
     margin-top: 1rem;
-    border: 1px solid rgba(0, 242, 255, 0.2);
-    box-shadow:
-        0 8px 32px rgba(0, 0, 0, 0.9),
-        0 0 40px rgba(0, 242, 255, 0.08),
+    border: 1px solid rgba(0, 242, 255, 0.15);
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    box-shadow: 
+        0 4px 24px rgba(0, 0, 0, 0.9),
+        0 0 40px rgba(0, 242, 255, 0.05),
         0 0 1px rgba(0, 242, 255, 0.3) inset;
-    transform: translateY(0);
-    transition: box-shadow 0.4s ease, transform 0.4s ease;
+    transition: transform 0.4s ease, box-shadow 0.4s ease;
 }
 
 .image-display:hover {
-    box-shadow:
-        0 16px 48px rgba(0, 0, 0, 0.95),
-        0 0 60px rgba(0, 242, 255, 0.15),
-        0 0 1px rgba(0, 242, 255, 0.5) inset;
     transform: translateY(-4px);
+    box-shadow: 
+        0 12px 48px rgba(0, 0, 0, 0.95),
+        0 0 60px rgba(0, 242, 255, 0.12);
 }
 
-#anime-img {
+.carousel-viewport {
+    width: 100%;
+    position: relative;
+    overflow: hidden;
+    border-radius: 12px;
+    display: flex; /* Added for centering support */
+    align-items: center;
+    justify-content: center;
+}
+
+.carousel-track {
+    display: flex;
+    transition: transform 0.5s cubic-bezier(0.2, 1, 0.3, 1);
+    /* removed height: 100% to allow expansion */
+}
+
+.carousel-slide {
+    width: 100%;
+    min-width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.carousel-slide img {
     max-width: 100%;
+    height: auto;
     max-height: 70vh;
     border-radius: 12px;
     object-fit: contain;
+    pointer-events: none;
     transition: opacity 0.5s ease;
+    display: block;
+    margin: 0 auto;
+}
+
+/* Navigation Arrows - Premium Overlay Style */
+.nav-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: rgba(255, 255, 255, 0.8);
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 10;
+    background: rgba(30, 30, 30, 0.5);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 0;
+    /* Hidden by default */
+    opacity: 0;
+    visibility: hidden;
+}
+
+.image-display:hover .nav-arrow {
+    /* Reveal on container hover */
+    opacity: 1;
+    visibility: visible;
+}
+
+.nav-arrow:hover:not(:disabled) {
+    background: rgba(45, 45, 45, 0.7);
+    border-color: var(--accent-color);
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+    color: #fff;
+    transform: translateY(-50%) scale(1.05);
+}
+
+.prev-arrow { left: 0.8rem; }
+.next-arrow { right: 0.8rem; }
+
+.nav-arrow:disabled {
+    opacity: 0.1;
+    cursor: not-allowed;
+}
+
+/* ─── THUMBNAILS SECTION ─── */
+.thumbnail-area {
+    margin-top: 1.5rem;
+    width: 100%;
+    overflow: hidden;
+}
+
+.thumbnail-track {
+    display: flex;
+    gap: 8px;
+    padding: 10px 0; /* Resetting padding - spacers will handle centering */
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    align-items: center;
+    touch-action: pan-x;
+    min-height: 110px;
+    justify-content: flex-start;
+    position: relative;
+}
+
+.thumb-spacer {
+    flex-shrink: 0;
+    width: calc(50% - 120px); /* 50% container width minus half the active thumbnail width (120px) */
+    height: 10px;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.thumbnail-track::-webkit-scrollbar {
+    display: none;
+}
+
+.thumb-btn {
+    flex-shrink: 0;
+    height: 80px; /* Reduced from 100px */
+    width: 80px;  /* Compact inactive width */
+    min-width: 80px;
+    border-radius: 6px;
+    overflow: hidden;
+    cursor: pointer;
+    border: none;
+    padding: 0;
+    margin: 0;
+    opacity: 0.4;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    background: #111;
+}
+
+.thumb-btn.active {
+    width: 240px; /* Adjusted active expansion (still triple) */
+    min-width: 240px;
+    opacity: 1;
+    box-shadow: 0 0 20px var(--accent-glow);
+    outline: 3px solid var(--accent-color);
+    z-index: 5;
+}
+
+.thumb-btn img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    pointer-events: none;
+    transition: transform 0.3s ease;
+}
+
+.thumb-btn.active img {
+    transform: scale(1.05);
+}
+
+.scrollbar-hide {
+    scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;
 }
 
 .placeholder {
