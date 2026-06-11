@@ -4,7 +4,7 @@
 <!-- ============================================================
      Anime OLED — index.html
      AMOLED-optimized anime image finder and downloader.
-     Powered by the waifu.pics public API.
+     Powered by the waifu.im public API.
      Fonts: Outfit (Google Fonts) | Styles: styles/style.css
      Logic:  js/script.js
      ============================================================ -->
@@ -31,7 +31,8 @@
 
 <body class="amoled-theme">
 
-
+    <!-- Drawer Backdrop -->
+    <div id="drawer-backdrop" class="drawer-backdrop hidden"></div>
     <div class="container">
 
         <!-- ─── HEADER: Title & Tagline ─────────────────────── -->
@@ -42,12 +43,9 @@
 
         <main>
 
-            <!-- ─── CONTROLS CARD ─────────────────────────────
-                 Glass card holding content type toggle,
-                 category dropdown, and action buttons.
-                 z-index keeps dropdown popover above image card.
-                 ─────────────────────────────────────────────── -->
-            <div class="controls glass">
+            <!-- ─── SETTINGS DRAWER ───────────────────────────── -->
+            <aside id="drawer" class="drawer glass">
+                <h3 style="color: white; margin-bottom: 1rem;">Settings</h3>
 
                 <!-- SFW / NSFW Toggle -->
                 <div class="control-group">
@@ -61,12 +59,26 @@
                         <span class="toggle-label nsfw">NSFW</span>
                     </div>
                 </div>
+            </aside><!-- /.drawer -->
 
-                <!-- Category Dropdown
-                     Trigger button opens a glass popover grid.
-                     Grid items are dynamically injected by script.js.
-                     aria-expanded is updated by JS for accessibility. -->
+            <!-- ─── MAIN CONTROLS ───────────────────────────── -->
+            <div class="controls glass">
+
+                <!-- Search Mode Toggle -->
                 <div class="control-group">
+                    <label for="mode-toggle">Search Mode</label>
+                    <div class="toggle-container">
+                        <span class="toggle-label mode-cat active">Category</span>
+                        <label class="switch">
+                            <input type="checkbox" id="mode-toggle">
+                            <span class="slider round"></span>
+                        </label>
+                        <span class="toggle-label mode-search">Custom</span>
+                    </div>
+                </div>
+
+                <!-- Category Dropdown -->
+                <div class="control-group" id="group-category">
                     <label>Category</label>
                     <div class="custom-dropdown" id="category-dropdown">
                         <button class="dropdown-trigger glass" id="dropdown-trigger" aria-haspopup="true"
@@ -91,13 +103,40 @@
                     </div>
                 </div>
 
-                <!-- Action Buttons
-                     Download is disabled until an image has been fetched. -->
-                <div class="button-group">
-                    <button id="find-btn" class="primary-btn">Find</button>
-                    <button id="download-btn" class="secondary-btn" disabled>Download</button>
+                <!-- Custom Search Input -->
+                <div class="control-group hidden" id="group-search">
+                    <label for="custom-search">Custom Search</label>
+                    <input type="text" id="custom-search" class="search-input glass" placeholder="e.g. naruto ">
                 </div>
 
+                <!-- Action Buttons -->
+                <div class="button-group">
+                    <button id="find-btn" class="primary-btn icon-btn" title="Find">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                    </button>
+                    <button id="download-btn" class="secondary-btn icon-btn" disabled title="Download">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7 10 12 15 17 10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                    </button>
+                    <button id="drawer-toggle" class="drawer-toggle glass icon-btn" aria-label="Settings"
+                        title="Settings">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="3"></circle>
+                            <path
+                                d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+                            </path>
+                        </svg>
+                    </button>
+                </div>
             </div><!-- /.controls -->
 
             <!-- ─── IMAGE DISPLAY CARD ─────────────────────────
@@ -160,7 +199,10 @@
 
         <!-- ─── FOOTER: API Attribution ──────────────────────── -->
         <footer>
-            <p>Powered by <a href="https://waifu.pics" target="_blank" rel="noopener noreferrer">waifu.pics</a> API</p>
+            <p>Powered by <a href="https://waifu.im" target="_blank" rel="noopener noreferrer">waifu.im</a>, <a
+                    href="https://nekos.best" target="_blank" rel="noopener noreferrer">nekos.best</a> and <a
+                    href="https://danbooru.donmai.us" target="_blank" rel="noopener noreferrer">Danbooru / Safebooru</a>
+            </p>
         </footer>
 
     </div><!-- /.container -->

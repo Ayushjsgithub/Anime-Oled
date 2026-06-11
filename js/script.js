@@ -1,9 +1,30 @@
 /* ─── CONFIG ─────────────────────────────────────────────────
  *  All available categories for SFW and NSFW modes.
+ *  Source: https://docs.waifu.im/docs/tags
  * ─────────────────────────────────────────────────────────── */
 const categories = {
-    sfw: ['waifu', 'neko', 'shinobu', 'megumin', 'bully', 'cuddle', 'cry', 'hug', 'awoo', 'kiss', 'lick', 'pat', 'smug', 'bonk', 'yeet', 'blush', 'smile', 'wave', 'highfive', 'handhold', 'nom', 'bite', 'glomp', 'slap', 'kill', 'kick', 'happy', 'wink', 'poke', 'dance', 'cringe'],
-    nsfw: ['waifu', 'neko', 'trap', 'blowjob']
+    sfw: [
+        { id: 'waifu', name: 'Waifu', api: 'waifu.im', tag: 'waifu' },
+        { id: 'maid', name: 'Maid', api: 'waifu.im', tag: 'maid' },
+        { id: 'uniform', name: 'Uniform', api: 'waifu.im', tag: 'uniform' },
+        { id: 'selfies', name: 'Selfies', api: 'waifu.im', tag: 'selfies' },
+        { id: 'genshin', name: 'Genshin', api: 'waifu.im', tag: 'genshin-impact' },
+        { id: 'rem', name: 'Rem', api: 'waifu.im', tag: 'rem' },
+        { id: 'nekos_catgirl', name: 'Catgirl (Nekos)', api: 'nekos.best', tag: 'neko' },
+        { id: 'nekos_foxgirl', name: 'Foxgirl (Nekos)', api: 'nekos.best', tag: 'kitsune' },
+        { id: 'nekos_random', name: 'Random (Nekos)', api: 'nekos.best', tag: 'waifu' }
+    ],
+    nsfw: [
+        { id: 'ero', name: 'Ero', api: 'waifu.im', tag: 'ero' },
+        { id: 'ecchi', name: 'Ecchi', api: 'waifu.im', tag: 'ecchi' },
+        { id: 'oppai', name: 'Oppai', api: 'waifu.im', tag: 'oppai' },
+        { id: 'hentai', name: 'Hentai', api: 'waifu.im', tag: 'hentai' },
+        { id: 'milf', name: 'Milf', api: 'waifu.im', tag: 'milf' },
+        { id: 'ass', name: 'Ass', api: 'waifu.im', tag: 'ass' },
+        { id: 'nekos_catgirl', name: 'Catgirl (Nekos)', api: 'nekos.best', tag: 'neko' },
+        { id: 'nekos_foxgirl', name: 'Foxgirl (Nekos)', api: 'nekos.best', tag: 'kitsune' },
+        { id: 'nekos_random', name: 'Random (Nekos)', api: 'nekos.best', tag: 'waifu' }
+    ]
 };
 
 /* ─── DOM REFS ───────────────────────────────────────────────
@@ -16,24 +37,36 @@ const thumbnailTrack    = document.getElementById('thumbnail-track');
 const prevBtn           = document.getElementById('prev-btn');
 const nextBtn           = document.getElementById('next-btn');
 
+const drawer            = document.getElementById('drawer');
+const drawerBackdrop    = document.getElementById('drawer-backdrop');
+const drawerToggle      = document.getElementById('drawer-toggle');
+
 const dropdownTrigger    = document.getElementById('dropdown-trigger');
 const dropdownPopover    = document.getElementById('dropdown-popover');
 const categoryGrid       = document.getElementById('category-grid');
 const selectedCategoryText = document.getElementById('selected-category');
+const customSearchInput  = document.getElementById('custom-search');
+
 const typeToggle         = document.getElementById('type-toggle');
+const modeToggle         = document.getElementById('mode-toggle');
+const groupCategory      = document.getElementById('group-category');
+const groupSearch        = document.getElementById('group-search');
+
 const findBtn            = document.getElementById('find-btn');
 const downloadBtn        = document.getElementById('download-btn');
 const loader             = document.getElementById('loader');
 const placeholder        = document.getElementById('placeholder');
 const sfwLabel           = document.querySelector('.toggle-label.sfw');
 const nsfwLabel          = document.querySelector('.toggle-label.nsfw');
+const modeCatLabel       = document.querySelector('.toggle-label.mode-cat');
+const modeSearchLabel    = document.querySelector('.toggle-label.mode-search');
 
 /* ─── STATE ──────────────────────────────────────────────────
  *  Maintains the fetched collection and active navigation state.
  * ─────────────────────────────────────────────────────────── */
 let imageUrls        = [];      // Array of fetched image URLs
 let currentIndex     = 0;       // Active image index
-let selectedCategory = 'waifu'; // Active category selection
+let selectedCategory = categories.sfw[0]; // Active category object
 
 /* ─── DROPDOWN ───────────────────────────────────────────────
  *  Builds the category grid based on active content type.
@@ -42,16 +75,16 @@ function populateCategories() {
     const type = typeToggle.checked ? 'nsfw' : 'sfw';
     categoryGrid.innerHTML = ''; 
 
-    if (!categories[type].includes(selectedCategory)) {
+    if (!categories[type].find(c => c.id === selectedCategory.id)) {
         selectedCategory = categories[type][0];
     }
 
-    selectedCategoryText.textContent = selectedCategory.charAt(0).toUpperCase() + selectedCategory.slice(1);
+    selectedCategoryText.textContent = selectedCategory.name;
 
     categories[type].forEach(cat => {
         const item = document.createElement('div');
-        item.className = `category-item ${cat === selectedCategory ? 'selected' : ''}`;
-        item.textContent = cat.charAt(0).toUpperCase() + cat.slice(1);
+        item.className = `category-item ${cat.id === selectedCategory.id ? 'selected' : ''}`;
+        item.textContent = cat.name;
         item.addEventListener('click', () => {
             selectedCategory = cat;
             selectedCategoryText.textContent = item.textContent;
@@ -72,8 +105,8 @@ function populateCategories() {
 
 /** Syncs the 'selected' class across all rendered category items. */
 function updateSelectionUI() {
-    document.querySelectorAll('.category-item').forEach(item => {
-        item.classList.toggle('selected', item.textContent.toLowerCase() === selectedCategory);
+    document.querySelectorAll('#category-grid .category-item').forEach(item => {
+        item.classList.toggle('selected', item.textContent === selectedCategory.name);
     });
 }
 
@@ -177,18 +210,33 @@ function setCarouselIndex(index) {
 }
 
 /* ─── API FETCH ──────────────────────────────────────────────
- *  Uses the 'many' endpoint to fetch up to 30 images at once.
- *  POST https://api.waifu.pics/many/{type}/{category}
+ *  Uses the selected API to fetch up to 30 images at once.
  * ─────────────────────────────────────────────────────────── */
 async function getAnime() {
-    const type = typeToggle.checked ? 'nsfw' : 'sfw';
-    const apiUrl = `https://api.waifu.pics/many/${type}/${selectedCategory}`;
+    let apiUrl = '';
+    let isCustomSearch = modeToggle && modeToggle.checked;
+    
+    if (isCustomSearch) {
+        if (!customSearchInput || customSearchInput.value.trim() === '') {
+            alert('Please enter an anime name or tag to search.');
+            return;
+        }
+        const searchValue = customSearchInput.value.trim().replace(/\s+/g, '_');
+        const ratingTag = typeToggle.checked ? '-rating:g' : 'rating:g';
+        apiUrl = `https://danbooru.donmai.us/posts.json?tags=*${encodeURIComponent(searchValue)}*+${ratingTag}&limit=100`;
+    } else if (selectedCategory.api === 'nekos.best') {
+        apiUrl = `https://nekos.best/api/v2/${selectedCategory.tag}?amount=20`;
+    } else {
+        const isNsfw = typeToggle.checked ? 'True' : 'False';
+        apiUrl = `https://api.waifu.im/images?IncludedTags=${selectedCategory.tag}&IsNsfw=${isNsfw}&PageSize=30`;
+    }
+
     console.debug(`[API] Fetching collection: ${apiUrl}`);
     
     // Lock UI and show loader
     findBtn.disabled = true;
-    const originalBtnText = findBtn.textContent;
-    findBtn.textContent = 'Gathering...';
+    // const originalBtnText = findBtn.textContent;
+    // findBtn.textContent = 'Gathering...';
     loader.classList.remove('hidden');
     placeholder.classList.add('hidden');
     carouselViewport.classList.add('hidden');
@@ -196,15 +244,26 @@ async function getAnime() {
     downloadBtn.disabled = true;
 
     try {
-        const response = await fetch(apiUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ exclude: [] })
-        });
+        const response = await fetch(apiUrl);
         const data = await response.json();
 
-        if (data.files && data.files.length > 0) {
-            imageUrls = data.files;
+        let fetchedUrls = [];
+        if (isCustomSearch && Array.isArray(data) && data.length > 0) {
+            // Filter out items that might not have a file_url (e.g. banned/deleted posts)
+            fetchedUrls = data.filter(item => item.file_url).map(item => item.file_url);
+        } else if (selectedCategory.api === 'nekos.best' && data.results && data.results.length > 0) {
+            fetchedUrls = data.results.map(item => item.url);
+        } else if (selectedCategory.api === 'waifu.im' && data.items && data.items.length > 0) {
+            fetchedUrls = data.items.map(item => item.url);
+        }
+
+        // Randomize custom search results so it doesn't show the same images every time
+        if (isCustomSearch && fetchedUrls.length > 0) {
+            fetchedUrls = fetchedUrls.sort(() => 0.5 - Math.random()).slice(0, 30);
+        }
+
+        if (fetchedUrls.length > 0) {
+            imageUrls = fetchedUrls;
             currentIndex = 0;
             
             renderCarousel();
@@ -218,7 +277,7 @@ async function getAnime() {
                     thumbnailArea.classList.remove('hidden');
                     downloadBtn.disabled = false;
                     findBtn.disabled = false;
-                    findBtn.textContent = originalBtnText;
+                    // findBtn.textContent = originalBtnText;
                     console.debug('[Carousel] Ready with', imageUrls.length, 'images');
                 };
 
@@ -226,13 +285,13 @@ async function getAnime() {
                 else firstImg.onload = revealUI;
             }
         } else {
-            throw new Error('Empty response from API');
+            throw new Error('Empty response from API or no images found');
         }
     } catch (error) {
         console.error('[API] Error:', error);
         alert('Failed to fetch images. Please try again.');
         findBtn.disabled = false;
-        findBtn.textContent = originalBtnText;
+        // findBtn.textContent = originalBtnText;
         loader.classList.add('hidden');
         placeholder.classList.remove('hidden');
     }
@@ -265,7 +324,7 @@ async function downloadImage() {
         const blobUrl = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = blobUrl;
-        a.download = `anime_${selectedCategory}_${Date.now()}.${ext}`;
+        a.download = `anime_${selectedCategory.id}_${Date.now()}.${ext}`;
         document.body.appendChild(a);
         a.click();
         
@@ -284,7 +343,7 @@ async function downloadImage() {
         triggerDownload(blob);
     } catch (err) {
         console.warn(`[Download] Direct fetch failed: ${err.message}. Retrying via proxy...`);
-        const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(url)}`;
+        const proxyUrl = `https://api.cors.lol/?url=${encodeURIComponent(url)}`;
         try {
             const resp = await fetch(proxyUrl);
             if (!resp.ok) throw new Error('Proxy fetch failed');
@@ -300,9 +359,50 @@ async function downloadImage() {
 }
 
 /* ─── EVENT LISTENERS ──────────────────────────────────────── */
+if (drawerToggle) {
+    drawerToggle.addEventListener('click', () => {
+        drawer.classList.toggle('open');
+        drawerBackdrop.classList.toggle('open');
+    });
+}
+if (drawerBackdrop) {
+    drawerBackdrop.addEventListener('click', () => {
+        drawer.classList.remove('open');
+        drawerBackdrop.classList.remove('open');
+    });
+}
+
 typeToggle.addEventListener('change', populateCategories);
+
+if (modeToggle) {
+    modeToggle.addEventListener('change', () => {
+        if (modeToggle.checked) {
+            groupCategory.classList.add('hidden');
+            groupSearch.classList.remove('hidden');
+            modeSearchLabel.classList.add('active');
+            modeCatLabel.classList.remove('active');
+            // optionally focus the search input
+            customSearchInput.focus();
+        } else {
+            groupSearch.classList.add('hidden');
+            groupCategory.classList.remove('hidden');
+            modeCatLabel.classList.add('active');
+            modeSearchLabel.classList.remove('active');
+        }
+    });
+}
+
 findBtn.addEventListener('click', getAnime);
 downloadBtn.addEventListener('click', downloadImage);
+
+if (customSearchInput) {
+    customSearchInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            getAnime();
+        }
+    });
+}
 
 prevBtn.addEventListener('click', () => setCarouselIndex(currentIndex - 1));
 nextBtn.addEventListener('click', () => setCarouselIndex(currentIndex + 1));

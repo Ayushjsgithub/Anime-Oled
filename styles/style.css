@@ -46,11 +46,12 @@ body.amoled-theme {
 }
 
 .container {
-    width: 90%;
-    max-width: 800px;
+    width: 90vw;
+    max-width: none;
     padding: 2rem 0;
     display: flex;
     flex-direction: column;
+    align-items: center;
     gap: 2rem;
 }
 
@@ -60,7 +61,17 @@ body.amoled-theme {
 
 
 header {
+    width: 50vw;
+    max-width: none;
     text-align: center;
+}
+
+main {
+    width: 50vw;
+    max-width: none;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
 }
 
 header h1 {
@@ -103,11 +114,79 @@ header p {
 .controls {
     padding: 2rem;
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: auto 1fr auto;
     gap: 1.5rem;
     align-items: flex-end;
     position: relative;
     z-index: 10;
+}
+
+/* ─── DRAWER & BACKDROP ───────────────────────────────────────
+ *  Collapsible sidebar for controls and its background overlay.
+ * ─────────────────────────────────────────────────────────── */
+.drawer-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 40;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.drawer-backdrop.open {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.drawer-toggle {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    cursor: pointer;
+    z-index: 50;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--glass-border);
+    transition: all 0.3s ease;
+}
+
+.drawer-toggle:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: var(--accent-color);
+    box-shadow: 0 0 15px var(--accent-glow);
+}
+
+.drawer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 340px;
+    height: 100vh;
+    padding: 2rem;
+    padding-top: 6rem; /* space for toggle */
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    z-index: 45;
+    background: rgba(10, 10, 10, 0.85); /* Slightly darker glass for drawer */
+    border-right: 1px solid var(--glass-border);
+    border-radius: 0 20px 20px 0;
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow-y: auto;
+}
+
+.drawer.open {
+    transform: translateX(0);
 }
 
 .control-group {
@@ -133,13 +212,14 @@ header p {
 
 .dropdown-trigger {
     width: 100%;
-    padding: 0.8rem 1.2rem;
+    height: 48px;
+    padding: 0 1.2rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid var(--glass-border);
-    border-radius: 12px;
+    border-radius: 24px;
     color: white;
     cursor: pointer;
     transition: all 0.3s ease;
@@ -220,6 +300,31 @@ header p {
     font-weight: 600;
 }
 
+/* Custom Search Input */
+.search-input {
+    width: 100%;
+    height: 48px;
+    padding: 0 1.2rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--glass-border);
+    border-radius: 24px;
+    color: white;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    outline: none;
+}
+
+.search-input::placeholder {
+    color: var(--text-secondary);
+    opacity: 0.7;
+}
+
+.search-input:focus {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 15px var(--accent-glow);
+    background: rgba(255, 255, 255, 0.1);
+}
+
 /* Custom Scrollbar for Popover */
 .dropdown-popover::-webkit-scrollbar {
     width: 5px;
@@ -246,7 +351,13 @@ header p {
 .toggle-container {
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 1rem;
+    height: 48px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--glass-border);
+    border-radius: 24px;
+    padding: 0 1.2rem;
 }
 
 .switch {
@@ -319,6 +430,14 @@ input:checked+.slider:before {
     color: #ff0055;
 }
 
+.toggle-label.mode-cat.active {
+    color: var(--accent-color);
+}
+
+.toggle-label.mode-search.active {
+    color: var(--accent-color);
+}
+
 /* ─── BUTTONS ────────────────────────────────────────────────
  *  Primary (Find) = accent cyan. Secondary (Download) = ghost glass.
  *  Disabled state reduces opacity; pointer-events blocked via cursor.
@@ -336,7 +455,16 @@ button {
     cursor: pointer;
     font-weight: 600;
     transition: all 0.3s ease;
-    flex: 1;
+}
+
+.icon-btn {
+    width: 48px;
+    height: 48px;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50%;
 }
 
 .primary-btn {
@@ -425,7 +553,7 @@ button {
 .carousel-slide img {
     max-width: 100%;
     height: auto;
-    max-height: 70vh;
+    max-height: 500px;
     border-radius: 12px;
     object-fit: contain;
     pointer-events: none;
@@ -628,5 +756,9 @@ footer a:hover {
 @media (max-width: 600px) {
     .controls {
         grid-template-columns: 1fr;
+    }
+    
+    header, main {
+        width: 95vw;
     }
 }

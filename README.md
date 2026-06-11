@@ -13,7 +13,8 @@ Anime That Glows in the Dark. A premium, AMOLED-friendly anime wallpaper discove
 - **AMOLED Optimized:** Designed with deep blacks (`#000000`) to save battery and look stunning on OLED/AMOLED screens.
 - **Glassmorphism UI:** Modern, sleek interface with frosted glass effects and smooth transitions.
 - **SFW/NSFW Toggle:** Easily switch between content types with a custom-styled toggle.
-- **Dynamic Categories:** Choose from dozens of categories including Waifu, Neko, Shinobu, and more.
+- **Dynamic Categories:** Choose from dozens of categories including Waifu, Neko, Shinobu and more.
+- **Custom Search Engine:** Search for anything you want using a flexible keyword search powered by Danbooru/Safebooru.
 - **One-Click Download:** Download your favorite wallpapers directly to your device.
 - **Responsive Design:** Works flawlessly on both desktop and mobile devices.
 
@@ -22,7 +23,7 @@ Anime That Glows in the Dark. A premium, AMOLED-friendly anime wallpaper discove
 - **HTML5:** Semantic structure.
 - **Vanilla CSS:** Custom properties (variables), Flexbox, Grid, and Glassmorphism effects.
 - **JavaScript (ES6+):** Pure JS for DOM manipulation, API fetching, and asynchronous operations.
-- **API:** Powered by [waifu.pics](https://waifu.pics)
+- **API:** Powered by [waifu.im](https://waifu.im), [nekos.best](https://nekos.best) and [Danbooru](https://danbooru.donmai.us) / [Safebooru](https://safebooru.org).
 
 ## 🚀 Getting Started
 
@@ -35,15 +36,16 @@ Anime That Glows in the Dark. A premium, AMOLED-friendly anime wallpaper discove
 
 ## 📱 Usage
 
-1. Select your preferred **Content Type** (SFW or NSFW).
-2. Click on the **Category** dropdown to choose a specific theme.
-3. Pulse the **Find** button to fetch a random image.
-4. Click **Download** to save the image (if the browser blocks direct download, a fallback option will appear).
+1. **Settings Drawer:** Click **Settings** ⚙️ to open the drawer and toggle your preferred **Content Type** (SFW or NSFW).
+2. **Search or Select:** Use the toggle to switch between **Category** (dropdown selection) and **Search** (custom tag input) modes.
+3. **Fetch Images:** Click **Find** 🔍 to load a collection of random images.
+4. **Carousel & Thumbnails:** Use the left/right ⬅️/➡️ arrows on the image or the thumbnails below it to browse through your fetched images.
+5. **Download:** Click **Download** ⬇️ to save your favorite image directly to your device.
 
 ## 📜 Credits
 
 - Built with ❤️
-- Images provided by the [waifu.pics API](https://waifu.pics/docs)
+- Images provided by the [waifu.im API](https://docs.waifu.im/docs/intro), [nekos.best](https://nekos.best) and [Danbooru](https://danbooru.donmai.us) / [Safebooru](https://safebooru.org).
 
 ---
 
